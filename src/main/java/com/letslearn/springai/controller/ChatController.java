@@ -1,7 +1,9 @@
 package com.letslearn.springai.controller;
 
 import com.letslearn.springai.entity.Tut;
+import com.letslearn.springai.service.ChatAdvisorService;
 import com.letslearn.springai.service.ChatService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,11 +29,14 @@ public class ChatController {
      * controller -> web layer
      * service    -> Spring AI/business logic layer
      */
+
+    @Autowired
     private final ChatService chatService;
 
     public ChatController(ChatService chatService) {
         this.chatService = chatService;
     }
+
 
     /*
      * --------------------------------------------------------------
@@ -108,7 +113,7 @@ public class ChatController {
      * - send the final prompt to the model
      * - return generated text
      */
-    @GetMapping("/chat")
+    @GetMapping("/chat3")
     public ResponseEntity<String> chatUsingExternalPromptFile(
             @RequestParam(name = "query", required = true) String query) {
 
@@ -120,4 +125,5 @@ public class ChatController {
         // Wrap the generated text in an HTTP 200 OK response.
         return ResponseEntity.ok(response);
     }
+
 }
