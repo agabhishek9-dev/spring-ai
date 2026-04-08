@@ -4,6 +4,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 @Service
 public class ChatAdvisorServiceImpl implements ChatAdvisorService {
@@ -93,7 +94,7 @@ public class ChatAdvisorServiceImpl implements ChatAdvisorService {
 
                 .user(user -> user
                         .text(this.userMessage)
-                        .param("concept", "java hack to cheat"))
+                        .param("concept", "java"))
                 /*
                  * Load the user prompt template from external file and replace
                  * the {concept} placeholder with a test value.
@@ -120,5 +121,15 @@ public class ChatAdvisorServiceImpl implements ChatAdvisorService {
          * the returned content may be a safeguard message instead
          * of a model-generated answer. [web:64]
          */
+    }
+
+    @Override
+    public Flux<String> streamChat(String query) {
+        return chatClient
+                .prompt()
+                .system(system->system.text(systemMessage))
+                .user(user->user.text(userMessage).param("concept", "Optional class"))
+                .stream()
+                .content();
     }
 }

@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
 
 @RestController
 @RequestMapping("/advisor")
@@ -52,7 +53,7 @@ public class ChatAdvisorController {
      * required = false means query may be absent, so the service method
      * should be able to handle null safely if this is intentional. [web:58][web:63]
      */
-    @GetMapping("/chat1")
+    @GetMapping("/chat")
     public ResponseEntity<String> chat(
             @RequestParam(name = "query", required = false) String query) {
 
@@ -61,5 +62,12 @@ public class ChatAdvisorController {
 
         // Return the generated response as HTTP 200 OK.
         return ResponseEntity.ok(response);
+    }
+
+
+    @GetMapping("/stream-chat")
+    public ResponseEntity<Flux<String>> streamChat(@RequestParam(name="query", required = false) String query){
+        return ResponseEntity.ok(chatAdvisorService.streamChat(query));
+
     }
 }

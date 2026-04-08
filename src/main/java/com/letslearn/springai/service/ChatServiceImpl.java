@@ -5,6 +5,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
+import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
@@ -36,20 +37,6 @@ public class ChatServiceImpl implements ChatService {
     private final String prompt = "Who is Sachin Tendulkar ?";
     private final String systemInstruction = "As a cricket expert, answer the question.";
 
-    /*
-     * These Resource fields point to external prompt template files
-     * stored under src/main/resources/prompts/.
-     *
-     * Spring injects them as Resource objects, and Spring AI can use them
-     * directly inside prompt-building APIs. Spring AI supports using
-     * Resource-backed prompt templates instead of hardcoded strings. [web:14][web:29][web:35]
-     */
-    @Value("classpath:/prompts/user-message.st")
-    private Resource userMessage;
-
-    @Value("classpath:/prompts/system-message.st")
-    private Resource systemMessage;
-
     public ChatServiceImpl(ChatClient chatClient) {
         this.chatClient = chatClient;
     }
@@ -71,6 +58,7 @@ public class ChatServiceImpl implements ChatService {
      * If you already define a ChatClient bean in a @Configuration class,
      * injecting ChatClient directly is cleaner and more reusable.
      */
+
     // public ChatServiceImpl(ChatClient.Builder builder) {
     //     this.chatClient = builder.build();
     // }
@@ -134,7 +122,7 @@ public class ChatServiceImpl implements ChatService {
         String text = chatClient
                 .prompt(prompt1)     // Send an already-created Prompt object
                 .call()              // Invoke the AI model
-                .chatResponse()      // Get the complete response wrapper, not just plain text
+                .chatResponse()      // Get the complete response wrapper, not just plain text (Metadata about theLLM response)
                 .getResult()         // Extract the main result from the response
                 .getOutput()         // Extract the generated output message
                 .getText();          // Read only the text content from that output
@@ -152,6 +140,7 @@ public class ChatServiceImpl implements ChatService {
      * .chatResponse()
      * - detailed method
      * - useful when you need metadata or want to inspect the complete response
+     * there are lots of methods under chatResponse() which can be explored to get different type of metadata
      */
 
     /*
@@ -226,7 +215,15 @@ public class ChatServiceImpl implements ChatService {
     public String chatFluentAPIChain(String query) {
         logger.info("Processing query in service layer...");
 
-        Prompt prompt = new Prompt(query);
+        // for configuring prompts parameters instead of setting globally in application.properties
+        // Explore other configurations for future projects
+        // These configs are for this specific prompt, other option is to set it up during generation of ChatClient in AiConfig
+        Prompt prompt = new Prompt(query, OpenAiChatOptions.builder()
+                .model("gpt-40-mini")
+                .temperature(0.5)
+                .maxTokens(100)
+                .build()
+        );
 
         String content = chatClient
                 .prompt(prompt)   // Attach Prompt object to the request
@@ -290,12 +287,14 @@ public class ChatServiceImpl implements ChatService {
         // Step 1: Define the user prompt template with placeholders.
         String queryTemplate = "What is {techName} ? Tell me example of {exampleName}";
 
+        // Create PromptTemplate object
         PromptTemplate promptTemplate = PromptTemplate
                 .builder()
                 .template(queryTemplate)
                 .build();
 
         // Step 2: Replace placeholders with actual values.
+        // Use Map.of if you have placeholders to fill and use .render() if you have no placeholder, simp,e prompt
         String renderedMessage = promptTemplate.render(Map.of(
                 "techName", "Spring",
                 "exampleName", "Spring Boot"
@@ -329,7 +328,8 @@ public class ChatServiceImpl implements ChatService {
      * - user message contains the actual question
      *
      * Spring AI supports SystemPromptTemplate and PromptTemplate for
-     * building role-specific messages before combining them into a Prompt. [web:14][web:29]
+     * building role-specific messages before combining them into a Prompt.
+     * Not using any render in this
      */
     @Override
     public String chatTemplateUsingPromptTemplating2(String query) {
@@ -416,6 +416,22 @@ public class ChatServiceImpl implements ChatService {
      * Benefit:
      * Your Java code stays clean while prompt wording lives in dedicated files.
      */
+
+    /*
+     * These Resource fields point to external prompt template files
+     * stored under src/main/resources/prompts/.
+     *
+     * Spring injects them as Resource objects, and Spring AI can use them
+     * directly inside prompt-building APIs. Spring AI supports using
+     * Resource-backed prompt templates instead of hardcoded strings. [web:14][web:29][web:35]
+     */
+
+    @Value("classpath:/prompts/user-message.st")
+    private Resource userMessage;
+
+    @Value("classpath:/prompts/system-message.st")
+    private Resource systemMessage;
+
     @Override
     public String chatUsingExternalPromptFile(String query) {
 

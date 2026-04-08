@@ -1,5 +1,6 @@
 package com.letslearn.springai.config;
 
+import com.letslearn.springai.advisors.TokenPrintAdvisor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.SafeGuardAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
@@ -43,6 +44,7 @@ public class AiConfig {
                  * interactions around prompt execution. [web:48][web:49][web:53]
                  */
                 .defaultAdvisors(
+                        new TokenPrintAdvisor(),
 
                         /*
                          * SimpleLoggerAdvisor
@@ -58,7 +60,7 @@ public class AiConfig {
                          * This is especially helpful while learning Spring AI
                          * because you can observe request/response behavior. [web:48][web:53]
                          */
-                        new SimpleLoggerAdvisor(),
+                        // new SimpleLoggerAdvisor(),        // --> Commenting since it is taking too much real estate on console
 
                         /*
                          * SafeGuardAdvisor
@@ -114,7 +116,7 @@ public class AiConfig {
                  *
                  * These options apply globally unless a request overrides them.
                  */
-                .defaultOptions(
+                .defaultOptions(                            // use these default options instead of setting it up for individual prompt
                         OpenAiChatOptions.builder()
 
                                 /*
